@@ -1,0 +1,21 @@
+# Data directories (raw inputs and processed outputs)
+data/
+
+# Python cache and virtual envs
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# IDE/editor
+.idea/
+.vscode/
+
+# OS-specific
+.DS_Store
+
+# Jupyter
+*.ipynb_checkpoints/
+
+
