@@ -164,6 +164,7 @@ def main() -> None:
     parser.add_argument("--max-null-frac", type=str, default="status:0.2,brokered_by:0.5", help="col:frac,col:frac...")
     parser.add_argument("--take", type=int, default=100_000, help="Limit rows for local runs. Use -1 to process all.")
     parser.add_argument("--write-output", action="store_true", help="Write report under data/quality/<ts>/.")
+    parser.add_argument("--print-all", action="store_true", help="Print all checks with status in the console output.")
 
     args = parser.parse_args()
 
@@ -203,6 +204,21 @@ def main() -> None:
 
     print("\nQuality summary:")
     print(json.dumps(report["summary"], indent=2))
+
+    # Always show failing checks with details
+    failing = [c for c in report["checks"] if c["status"] == "fail"]
+    if failing:
+        print("\nFailing checks:")
+        for c in failing:
+            print(f"- {c['check']} -> observed={c['observed']} threshold={c['threshold']}")
+    else:
+        print("\nFailing checks: none")
+
+    # Optionally show all checks
+    if args.print_all:
+        print("\nAll checks:")
+        for c in report["checks"]:
+            print(f"- {c['check']}: {c['status']} | observed={c['observed']} | threshold={c['threshold']}")
 
     if args.write_output:
         project_root = Path(__file__).resolve().parents[1]
