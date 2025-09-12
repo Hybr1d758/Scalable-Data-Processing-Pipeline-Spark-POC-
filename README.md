@@ -38,14 +38,14 @@ We will keep this README up to date as each stage is added.
 
 Note: The project path on this machine contains a space. Wrap paths in quotes when using the shell.
 
-Project root (example):
+Project root:
 ```
 "/Users/edwardjr/Downloads/upwork /Engineering/Scalable-Data-Processing-Pipeline-Spark-POC-"
 ```
 
 ---
 
-### Snapshots (example outputs)
+### Snapshots (outputs)
 
 These are example results you can reproduce locally with the included Make targets.
 
@@ -174,7 +174,7 @@ python3 "jobs/cleanse_deduplicate.py" --keys parcel_number,address --take 100000
 # Use explicit input glob and skip trimming
 python3 "jobs/cleanse_deduplicate.py" --input "data/raw/usa-real-estate/*.csv" --keys parcel_number --no-trim
  
-# Example using the POC keys: street, city, state, zip_code, with normalization
+# POC keys: street, city, state, zip_code, with normalization
 python3 "jobs/cleanse_deduplicate.py" \
   --keys street,city,state,zip_code \
   --lowercase --normalize-spaces --strip-punct \
@@ -189,7 +189,7 @@ Options:
 - `--write-output`: write deduped data to `data/processed/cleanse_dedup/{parquet,csv}`
 - `--coalesce`: coalesce partitions before write (default 1)
 
-Keys used in this POC (example):
+Keys used in this POC :
 - We use `street, city, state, zip_code` as the deduplication keys for demonstration.
 - Adjust if your dataset uses different column names (e.g., `address` vs `street`, `zip` vs `zip_code`).
 
@@ -224,7 +224,6 @@ Outputs:
 ### Step 4 — Aggregate metrics (sum/min/max/avg)
 Enrichment is skipped. Proceed to aggregations on the routed (or deduped) data.
 
-Examples:
 ```bash
 # Aggregate by segment and state, compute metrics over price and house_size
 python3 "jobs/aggregate_metrics.py" \
@@ -250,7 +249,6 @@ Outputs:
 ### Step 5 — Validate & Split
 Validate records by rules and split into valid/invalid outputs.
 
-Example:
 ```bash
 python3 "jobs/validate_split.py" \
   --required-cols street,city,state,zip_code,price \
@@ -267,7 +265,6 @@ Outputs:
 ### Step 6 — Measure Throughput
 Measure records/sec for stages (read → dedup → route → aggregate) across sizes.
 
-Examples:
 ```bash
 python3 "jobs/measure_throughput.py" --sizes 10000,100000 --write-output
 python3 "jobs/measure_throughput.py" --keys street,city,state,zip_code --sizes 10000,100000 --write-output
