@@ -45,6 +45,60 @@ Project root (example):
 
 ---
 
+### Snapshots (example outputs)
+
+These are example results you can reproduce locally with the included Make targets.
+
+Data Quality (summary + a failing check):
+```json
+{
+  "total_rows": 98754,
+  "passed": 10,
+  "failed": 1
+}
+
+Failing checks:
+- required_non_null:price -> observed={"nulls": 5, "fraction": 0.000051} threshold={"nulls": 0}
+```
+
+Market Trends (top states by average price):
+
+| state | avg_price | num_properties |
+|-------|-----------|----------------|
+| CA    | 1,200,000 | 1,234          |
+| NY    | 1,050,000 | 1,102          |
+| WA    | 980,000   | 876            |
+
+Throughput (records/sec by stage):
+```text
+{'size': '10000', 'stage': 'read',       'seconds': 0.42, 'records': 10000, 'rps': 23809.52, 'config': {'aqe': true, 'skew_join': true, 'shuffle_partitions': '8',  'broadcast_threshold': '10MB'}}
+{'size': '10000', 'stage': 'dedup',      'seconds': 0.31, 'records':  9975, 'rps': 32258.06, 'config': {'aqe': true, 'skew_join': true, 'shuffle_partitions': '8',  'broadcast_threshold': '10MB'}}
+{'size': '10000', 'stage': 'route',      'seconds': 0.15, 'records':  9975, 'rps': 66666.67, 'config': {'aqe': true, 'skew_join': true, 'shuffle_partitions': '8',  'broadcast_threshold': '10MB'}}
+{'size': '10000', 'stage': 'aggregate',  'seconds': 0.09, 'records':  9975, 'rps': 111111.1, 'config': {'aqe': true, 'skew_join': true, 'shuffle_partitions': '8',  'broadcast_threshold': '10MB'}}
+```
+
+How to refresh these locally:
+```bash
+# Generate processed data
+make run-dedupe && make run-route && make run-aggregate
+
+# Data quality report (writes to data/quality/<timestamp>/)
+make run-quality
+
+# Throughput metrics (writes to data/metrics/)
+python3 "jobs/measure_throughput.py" --sizes 10000,100000 --aqe --skew-join --shuffle-partitions 8 --broadcast-threshold 10MB --write-output
+
+# Optional: materialize into DuckDB and query
+make run-duckdb
+python3 - <<'PY'
+import duckdb
+con = duckdb.connect('data/warehouse.duckdb')
+print(con.execute('SELECT state, avg_price, num_properties FROM market_trends ORDER BY avg_price DESC LIMIT 5').fetchdf())
+PY
+```
+
+---
+
 ### Prerequisites
 - Python 3.9+
 - Java/JRE installed (required by Spark)
