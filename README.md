@@ -84,6 +84,13 @@ data/raw/usa-real-estate/
 ```
 Alternatively, you can pass an explicit `--input` path to any script.
 
+Quick start with sample data (no downloads required):
+```bash
+mkdir -p "data/raw/usa-real-estate"
+cp sample/usa_real_estate_sample.csv "data/raw/usa-real-estate/"
+make setup && make run-ingest
+```
+
 ---
 
 ### Step 1 — Ingest a single CSV (local)

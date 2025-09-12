@@ -1,0 +1,11 @@
+street,city,state,zip_code,brokered_by,status,price,bed,bath,acre_lot,house_size,prev_sold_date
+123 Main St,Beverly Hills,CA,90210,Alpha Realty,For Sale,1500000,4,3,0.25,2800,2018-06-15
+456 Oak Ave,New York,NY,10001,Beta Brokers,Sold,950000,2,2,0.10,1200,2019-09-10
+789 Pine Rd,Austin,TX,73301,Gamma Homes,For Sale,550000,3,2,0.50,1800,2020-03-22
+101 Maple Dr,Seattle,WA,98101,Delta Realty,For Sale,1200000,4,3,0.20,2600,2017-12-01
+202 Elm St,Miami,FL,33101,Echo Estates,Sold,800000,3,2,0.15,1700,2021-07-30
+303 Cedar Ln,Chicago,IL,60601,Foxtrot Realty,For Sale,400000,2,1,0.05,900,2016-05-05
+404 Birch Blvd,Denver,CO,80202,Golf Homes,For Sale,700000,3,2,0.30,1600,2015-11-11
+505 Walnut Way,Portland,OR,97201,Hotel Properties,Sold,650000,3,2,0.12,1500,2018-08-19
+606 Spruce Ct,Phoenix,AZ,85001,India Realty,For Sale,300000,2,1,0.20,1100,2014-02-14
+707 Aspen Pl,Boston,MA,02108,Juliet Brokers,For Sale,950000,3,3,0.08,1550,2022-01-05

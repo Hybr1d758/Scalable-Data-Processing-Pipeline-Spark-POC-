@@ -1,5 +1,8 @@
 # Data directories (raw inputs and processed outputs)
 data/
+!data/.keep
+# allow sample assets
+!sample/
 
 # Python cache and virtual envs
 __pycache__/
