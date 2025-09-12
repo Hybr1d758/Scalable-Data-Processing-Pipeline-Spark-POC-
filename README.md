@@ -2,6 +2,19 @@
 
 A practical, incremental Spark pipeline you can run locally first, then scale up. We start simple (ingest one CSV ~100k rows), then add cleansing, routing, aggregations, validation, throughput measurement, and persistence. (Enrichment step is currently skipped.)
 
+### Architecture (Pipeline Overview)
+```mermaid
+flowchart LR
+  A[Raw CSVs\n(data/raw/usa-real-estate)] --> B[Ingest\njobs/ingest_single_csv.py]
+  B --> C[Cleanse & Deduplicate\njobs/cleanse_deduplicate.py]
+  C --> D[Route (derive segment)\njobs/route_data.py]
+  D --> E[Aggregate Metrics\njobs/aggregate_metrics.py]
+  D --> F[Validate & Split\njobs/validate_split.py]
+  E --> G[Persist Outputs\nParquet + CSV]
+  F --> G
+  D --> H[Throughput Measurement\njobs/measure_throughput.py]
+```
+
 ### Pipeline stages
 - **Ingest one CSV (local)**: quick validation of schema, sample, and counts
 - **Cleanse & Deduplicate**: remove duplicates using Spark joins/keys
