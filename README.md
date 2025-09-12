@@ -224,6 +224,23 @@ Outputs:
 
 ---
 
+### Optional — DuckDB warehouse (fast local analytics)
+Persist Spark outputs (Parquet) into a single DuckDB file for quick SQL queries.
+
+```bash
+# Refresh all tables into data/warehouse.duckdb
+make run-duckdb
+
+# Query examples (Python)
+python3 - <<'PY'
+import duckdb
+con = duckdb.connect('data/warehouse.duckdb')
+print(con.execute('SELECT state, avg_price FROM market_trends ORDER BY avg_price DESC LIMIT 5').fetchdf())
+PY
+```
+
+---
+
 ### Roadmap (as we implement)
 1) Cleanse & Deduplicate
    - Remove duplicate records using Spark joins/keys

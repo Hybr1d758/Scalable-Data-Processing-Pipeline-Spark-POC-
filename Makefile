@@ -1,4 +1,4 @@
-.PHONY: setup run-ingest run-dedupe run-route run-aggregate run-validate run-throughput docker-build docker-run
+.PHONY: setup run-ingest run-dedupe run-route run-aggregate run-validate run-throughput run-duckdb docker-build docker-run
 
 setup:
 	python3 -m pip install -r requirements.txt
@@ -20,6 +20,9 @@ run-validate:
 
 run-throughput:
 	python3 jobs/measure_throughput.py --keys street,city,state,zip_code --sizes 10000,100000 --write-output
+
+run-duckdb:
+	python3 jobs/persist_duckdb.py --db data/warehouse.duckdb --refresh-all
 
 docker-build:
 	docker build -t spark-poc-jobs:latest .
