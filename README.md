@@ -73,6 +73,33 @@ Notes:
 
 ---
 
+### Step 2 — Cleanse & Deduplicate (JOIN-based)
+Cleans string columns (trim) and removes duplicates using a join-based method on provided key columns.
+
+From the project root:
+```bash
+# Example with two key columns and write outputs to data/processed/cleanse_dedup
+python3 "jobs/cleanse_deduplicate.py" --keys parcel_number,address --take 100000 --write-output
+
+# Use explicit input glob and skip trimming
+python3 "jobs/cleanse_deduplicate.py" --input "data/raw/usa-real-estate/*.csv" --keys parcel_number --no-trim
+```
+
+Options:
+- `--keys`: comma-separated key columns used to identify duplicates (required)
+- `--take`: limit for quick local runs (default 100k; set `-1` for all)
+- `--no-trim`: disable trimming of string columns
+- `--no-infer-schema` / `--no-header`: CSV read options
+- `--write-output`: write deduped data to `data/processed/cleanse_dedup/{parquet,csv}`
+- `--coalesce`: coalesce partitions before write (default 1)
+
+How dedup works:
+- Adds a synthetic `__row_id` per row
+- Groups by the key columns and takes the minimal `__row_id` per group
+- Joins back on keys + `__row_id` to keep exactly one row per group
+
+---
+
 ### Roadmap (as we implement)
 1) Cleanse & Deduplicate
    - Remove duplicate records using Spark joins/keys

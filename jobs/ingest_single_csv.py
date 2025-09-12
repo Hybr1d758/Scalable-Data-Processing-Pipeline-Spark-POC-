@@ -5,14 +5,12 @@ from typing import Optional
 
 from pyspark.sql import DataFrame, SparkSession
 
-input_csv_path = '/Users/edwardjr/Downloads/upwork /Engineering/Scalable-Data-Processing-Pipeline-Spark-POC-/realtor-data.zip.csv'
-
 def resolve_input_csv_path(explicit_input_path: Optional[str]) -> str:
     """Return the CSV path to read.
 
     Priority:
     1) Use the explicitly provided --input path if present.
-    2) Otherwise, pick the first CSV under input_csv_path.
+    2) Otherwise, pick the first CSV under data/raw/usa-real-estate/.
 
     Raises a FileNotFoundError with guidance if no CSV is found.
     """
@@ -20,7 +18,7 @@ def resolve_input_csv_path(explicit_input_path: Optional[str]) -> str:
         return explicit_input_path
 
     project_root = Path(__file__).resolve().parents[1]
-    default_glob = input_csv_path
+    default_glob = project_root / "data" / "raw" / "usa-real-estate" / "*.csv"
     matches = sorted(glob.glob(str(default_glob)))
     if not matches:
         raise FileNotFoundError(
@@ -71,7 +69,7 @@ def main() -> None:
         "--input",
         type=str,
         default=None,
-        help="Path to a CSV file to ingest. If omitted, the first CSV under input_csv_path is used.",
+        help="Path to a CSV file to ingest. If omitted, the first CSV under data/raw/usa-real-estate/ is used.",
     )
     parser.add_argument(
         "--take",
@@ -98,7 +96,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Resolve an input file (explicit path or first CSV under input_csv_path)
+    # Resolve an input file (explicit path or first CSV under data/raw/usa-real-estate)
     input_csv_path = resolve_input_csv_path(args.input)
     # Create a Spark session
     spark = create_spark(app_name="IngestSingleCSV")
