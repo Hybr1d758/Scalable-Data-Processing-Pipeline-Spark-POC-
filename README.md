@@ -241,6 +241,25 @@ PY
 
 ---
 
+### Data Quality (validations and report)
+Run lightweight validations (required fields, null rates, numeric ranges, key uniqueness) and write a report.
+
+```bash
+make run-quality
+# or customize
+python3 "jobs/data_quality.py" \
+  --required-cols street,city,state,zip_code,price \
+  --unique-keys street,city,state,zip_code \
+  --min price:0,house_size:0,acre_lot:0 \
+  --max-null-frac status:0.2,brokered_by:0.5 \
+  --write-output
+```
+Outputs:
+- `data/quality/<timestamp>/report.json`
+- `data/quality/<timestamp>/report.csv`
+
+---
+
 ### Roadmap (as we implement)
 1) Cleanse & Deduplicate
    - Remove duplicate records using Spark joins/keys

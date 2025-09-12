@@ -1,4 +1,4 @@
-.PHONY: setup run-ingest run-dedupe run-route run-aggregate run-validate run-throughput run-duckdb docker-build docker-run
+.PHONY: setup run-ingest run-dedupe run-route run-aggregate run-validate run-throughput run-duckdb run-quality docker-build docker-run
 
 setup:
 	python3 -m pip install -r requirements.txt
@@ -23,6 +23,9 @@ run-throughput:
 
 run-duckdb:
 	python3 jobs/persist_duckdb.py --db data/warehouse.duckdb --refresh-all
+
+run-quality:
+	python3 jobs/data_quality.py --write-output
 
 docker-build:
 	docker build -t spark-poc-jobs:latest .
