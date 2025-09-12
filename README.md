@@ -1,12 +1,12 @@
 ## Scalable Data Processing Pipeline — Spark POC
 
-A practical, incremental Spark pipeline you can run locally first, then scale up. We start simple (ingest one CSV ~100k rows), then add cleansing, routing, enrichment, aggregations, validation, throughput measurement, and persistence.
+A practical, incremental Spark pipeline you can run locally first, then scale up. We start simple (ingest one CSV ~100k rows), then add cleansing, routing, aggregations, validation, throughput measurement, and persistence. (Enrichment step is currently skipped.)
 
 ### Pipeline stages
 - **Ingest one CSV (local)**: quick validation of schema, sample, and counts
 - **Cleanse & Deduplicate**: remove duplicates using Spark joins/keys
 - **Route Data**: add a derived column based on decision rules
-- **Enrich Data**: join with a small lookup table
+// Enrich step intentionally skipped in this POC iteration
 - **Aggregate**: groupBy with sum/min/max
 - **Validate & Split**: separate invalid records
 - **Measure Throughput**: compare records/sec on small vs large datasets
@@ -110,14 +110,92 @@ How dedup works:
 
 ---
 
+### Step 3 — Route Data (derive segment)
+Adds a `segment` column based on simple rules.
+
+Default rules (preset_basic):
+- price > 1,000,000 → segment = luxury
+- else if beds ≥ 3 and sqft ≥ 2000 → segment = family
+- else → segment = standard
+
+From the project root (uses step 2 parquet by default if present):
+```bash
+python3 "jobs/route_data.py" --rules preset_basic --take 100000 --write-output
+# Or point explicitly to step 2 output or raw CSVs
+python3 "jobs/route_data.py" --input "data/processed/cleanse_dedup/parquet" --rules preset_basic --write-output
+python3 "jobs/route_data.py" --input "data/raw/usa-real-estate/*.csv" --rules preset_basic --write-output
+```
+Outputs:
+- `data/processed/routed/parquet/`
+- `data/processed/routed/csv/`
+
+---
+
+### Step 4 — Aggregate metrics (sum/min/max/avg)
+Enrichment is skipped. Proceed to aggregations on the routed (or deduped) data.
+
+Examples:
+```bash
+# Aggregate by segment and state, compute metrics over price and house_size
+python3 "jobs/aggregate_metrics.py" \
+  --input "data/processed/routed/parquet" \
+  --group-by segment,state \
+  --metrics price:sum,price:min,price:max,price:avg,house_size:avg \
+  --write-output
+
+# If routed not available, point to deduped parquet
+python3 "jobs/aggregate_metrics.py" \
+  --input "data/processed/cleanse_dedup/parquet" \
+  --group-by state \
+  --metrics price:sum,price:max \
+  --write-output
+```
+
+Outputs:
+- `data/processed/aggregated/parquet/`
+- `data/processed/aggregated/csv/`
+
+---
+
+### Step 5 — Validate & Split
+Validate records by rules and split into valid/invalid outputs.
+
+Example:
+```bash
+python3 "jobs/validate_split.py" \
+  --required-cols street,city,state,zip_code,price \
+  --min-price 0 --zip-col zip_code --zip-len 5 --zip-numeric \
+  --nonneg-cols price,house_size,acre_lot --int-cols bed,bath \
+  --take 100000 --write-output
+```
+Outputs:
+- `data/processed/validated/valid/{parquet,csv}`
+- `data/processed/validated/invalid/{parquet,csv}` with `validation_errors` and `is_valid` columns
+
+---
+
+### Step 6 — Measure Throughput
+Measure records/sec for stages (read → dedup → route → aggregate) across sizes.
+
+Examples:
+```bash
+python3 "jobs/measure_throughput.py" --sizes 10000,100000 --write-output
+python3 "jobs/measure_throughput.py" --keys street,city,state,zip_code --sizes 10000,100000 --write-output
+```
+Outputs:
+- `data/metrics/throughput.csv`
+- `data/metrics/throughput.json`
+
+---
+
 ### Roadmap (as we implement)
 1) Cleanse & Deduplicate
    - Remove duplicate records using Spark joins/keys
 2) Route Data
    - Add a derived routing column based on decision rules
-3) Enrich Data
-   - Join with a small lookup table (static CSV or in-memory)
-4) Aggregate
+3) Enrich Data (skipped for now)
+   - (Omitted in this POC iteration)
+4) Aggregate metrics
    - `groupBy` selected dimensions; compute `sum/min/max` metrics
 5) Validate & Split
    - Flag invalid records and write to a separate output
@@ -125,6 +203,26 @@ How dedup works:
    - Compare records/sec across small and larger input sizes
 7) Persist Output
    - Write final results to CSV and Parquet (with partitioning options)
+
+---
+
+### Known roadblocks and fixes
+- Quoted paths for directories with spaces:
+  - The local project path contains a space. Wrap paths in quotes.
+  - Example: cd "/Users/edwardjr/Downloads/upwork /Engineering/Scalable-Data-Processing-Pipeline-Spark-POC-"
+- Ingestion default path:
+  - Fixed to default to `data/raw/usa-real-estate/*.csv`; also supports `--input`.
+- Dedup required keys:
+  - Provide `--keys col1,col2` (we use `street, city, state, zip_code`) or use `--auto-keys`.
+- Text normalization for better matching:
+  - Use `--lowercase`, `--normalize-spaces`, `--strip-punct` to standardize strings.
+- Routing column name variants:
+  - Job coalesces alternatives:
+    - price: `price`, `list_price`, `sold_price`
+    - beds: `beds`, `bedrooms`, `bed`
+    - sqft: `sqft`, `sqft_living`, `living_area`, `house_size`
+- Keep large data out of Git:
+  - `data/` is in `.gitignore`; put inputs under `data/raw` and outputs under `data/processed`.
 
 ---
 
