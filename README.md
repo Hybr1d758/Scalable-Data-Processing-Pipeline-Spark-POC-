@@ -83,6 +83,12 @@ python3 "jobs/cleanse_deduplicate.py" --keys parcel_number,address --take 100000
 
 # Use explicit input glob and skip trimming
 python3 "jobs/cleanse_deduplicate.py" --input "data/raw/usa-real-estate/*.csv" --keys parcel_number --no-trim
+ 
+# Example using the POC keys: street, city, state, zip_code, with normalization
+python3 "jobs/cleanse_deduplicate.py" \
+  --keys street,city,state,zip_code \
+  --lowercase --normalize-spaces --strip-punct \
+  --take 100000 --write-output
 ```
 
 Options:
@@ -92,6 +98,10 @@ Options:
 - `--no-infer-schema` / `--no-header`: CSV read options
 - `--write-output`: write deduped data to `data/processed/cleanse_dedup/{parquet,csv}`
 - `--coalesce`: coalesce partitions before write (default 1)
+
+Keys used in this POC (example):
+- We use `street, city, state, zip_code` as the deduplication keys for demonstration.
+- Adjust if your dataset uses different column names (e.g., `address` vs `street`, `zip` vs `zip_code`).
 
 How dedup works:
 - Adds a synthetic `__row_id` per row
