@@ -150,6 +150,7 @@ def main() -> None:
     parser.add_argument("--max-price", type=float, default=None, help="Maximum allowed price (inclusive).")
     parser.add_argument("--zip-col", type=str, default="zip_code", help="Zip/postal code column name.")
     parser.add_argument("--zip-len", type=int, default=5, help="Required numeric length for zip when --zip-numeric is set.")
+    parser.add_argument("--zip-normalize", action="store_true", help="Normalize zip: cast to string, strip non-digits when --zip-numeric, and left-pad to --zip-len.")
     parser.add_argument("--zip-numeric", action="store_true", help="Require zip to be numeric (digits only) and of --zip-len length.")
     parser.add_argument("--nonneg-cols", type=str, default="price,house_size,acre_lot", help="Comma-separated numeric columns that must be non-negative.")
     parser.add_argument("--int-cols", type=str, default="bed,bath", help="Comma-separated columns that must be integers.")
@@ -167,6 +168,18 @@ def main() -> None:
 
     print("\nInput schema:")
     df.printSchema()
+
+    # Optional: normalize ZIPs (handle lost leading zeros in numeric CSVs)
+    if args.zip_normalize and args.zip_col and args.zip_col in df.columns:
+        z = F.col(args.zip_col).cast("string")
+        z_digits = F.regexp_replace(z, r"[^0-9]", "") if args.zip_numeric else z
+        padded = F.lpad(F.coalesce(z_digits, F.lit("")), int(args.zip_len), "0") if args.zip_len else z_digits
+        before_col = "__zip_before__"
+        df = df.withColumn(before_col, z)
+        df = df.withColumn(args.zip_col, padded)
+        changed = df.filter(F.col(before_col) != F.col(args.zip_col)).count()
+        print(f"ZIP normalization: changed_rows={changed}, zip_col={args.zip_col}, len={args.zip_len}, numeric={args.zip_numeric}")
+        df = df.drop(before_col)
 
     required_cols = [c.strip() for c in (args.required_cols or "").split(",") if c.strip()]
     nonneg_cols = [c.strip() for c in (args.nonneg_cols or "").split(",") if c.strip()]
