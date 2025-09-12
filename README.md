@@ -53,6 +53,22 @@ Project root (example):
 pip3 install pyspark
 ```
 
+#### Reproducible setup (Docker + Make)
+```bash
+# Build and run default ingestion job
+make docker-build
+make docker-run
+
+# Or run locally
+make setup
+make run-ingest
+make run-dedupe
+make run-route
+make run-aggregate
+make run-validate
+make run-throughput
+```
+
 Optional — Kaggle CLI (for programmatic downloads later):
 ```bash
 pip3 install kaggle

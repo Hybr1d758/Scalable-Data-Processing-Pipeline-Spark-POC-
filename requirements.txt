@@ -1,0 +1,2 @@
+pyspark==3.5.1
+pyarrow==16.1.0

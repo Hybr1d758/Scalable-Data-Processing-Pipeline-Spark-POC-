@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  spark-jobs:
+    build: .
+    image: spark-poc-jobs:latest
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      - SPARK_LOCAL_IP=127.0.0.1
+    command: ["python", "jobs/ingest_single_csv.py", "--take", "100000"]
